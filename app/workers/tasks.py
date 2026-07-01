@@ -10,9 +10,14 @@ from app.services.cleaning.csv_processor import CSVProcessor
 from app.services.cleaning.data_cleaner import DataCleaner
 from app.workers.celery_app import celery
 
+from app.services.anomaly.anomaly_detector import AnomalyDetector
+
 job_repository = JobRepository()
 csv_processor = CSVProcessor()
 data_cleaner = DataCleaner()
+
+anomaly_detector = AnomalyDetector()
+
 
 
 @celery.task
@@ -42,17 +47,15 @@ def process_job(job_id: str):
         # Clean Data
         df = data_cleaner.clean(df)
 
+        # Detect anomalies
+        df = anomaly_detector.detect(df)
+
         clean_rows = len(df)
 
         print(f"Raw Rows   : {raw_rows}")
         print(f"Clean Rows : {clean_rows}")
 
-        # ==========================================
-        # Save ALL cleaned transactions
-        # ==========================================
-
         for _, row in df.iterrows():
-
             transaction = Transaction(
                 job_id=job.id,
                 txn_id=str(row["txn_id"]),
@@ -64,11 +67,17 @@ def process_job(job_id: str):
                 category=None if row["category"] != row["category"] else str(row["category"]),
                 account_id=str(row["account_id"]),
                 notes=None if row["notes"] != row["notes"] else str(row["notes"]),
+
+                is_anomaly=bool(row["is_anomaly"]),
+                anomaly_reason=str(row["anomaly_reason"]) if row["is_anomaly"] else None,
             )
 
             db.add(transaction)
 
         print(f"Saved {clean_rows} transactions.")
+
+        anomaly_count = int(df["is_anomaly"].sum())
+        print(f"Anomalies Found : {anomaly_count}")
 
         # Update Job
         job.row_count_raw = raw_rows
