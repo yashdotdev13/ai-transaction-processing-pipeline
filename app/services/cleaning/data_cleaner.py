@@ -5,41 +5,77 @@ class DataCleaner:
 
     def clean(self, df: pd.DataFrame) -> pd.DataFrame:
 
-        # Create a copy
         df = df.copy()
 
-        # Remove leading/trailing spaces
         string_columns = df.select_dtypes(include=["object"]).columns
 
         for column in string_columns:
-            df[column] = df[column].astype(str).str.strip()
+            df[column] = (
+                df[column]
+                .astype(str)
+                .str.strip()
+            )
 
-        # Replace NaN in notes
-        if "notes" in df.columns:
-            df["notes"] = df["notes"].replace("nan", "")
+        df["amount"] = (
+            df["amount"]
+            .astype(str)
+            .str.replace("$", "", regex=False)
+            .str.replace(",", "", regex=False)
+            .str.strip()
+        )
 
-        # Convert amount to numeric
         df["amount"] = pd.to_numeric(
             df["amount"],
             errors="coerce"
         )
 
-        # Remove rows where amount is invalid
-        df = df.dropna(subset=["amount"])
-
-        # Convert dates
         df["date"] = pd.to_datetime(
             df["date"],
             errors="coerce",
             dayfirst=True
         )
 
-        # Remove invalid dates
+        df["currency"] = (
+            df["currency"]
+            .astype(str)
+            .str.strip()
+            .str.upper()
+        )
+
+        df["status"] = (
+            df["status"]
+            .astype(str)
+            .str.strip()
+            .str.upper()
+        )
+
+        df["category"] = (
+            df["category"]
+            .fillna("")
+            .astype(str)
+            .replace("nan", "")
+            .str.strip()
+        )
+
+        df.loc[
+            df["category"] == "",
+            "category"
+        ] = "Uncategorised"
+
+        df["notes"] = (
+            df["notes"]
+            .fillna("")
+            .astype(str)
+            .replace("nan", "")
+            .str.strip()
+        )
+
+        df = df.dropna(subset=["amount"])
+
         df = df.dropna(subset=["date"])
 
-        # Remove duplicate transaction IDs
-        df = df.drop_duplicates(
-            subset=["txn_id"]
-        )
+        df = df.drop_duplicates()
+
+        df = df.reset_index(drop=True)
 
         return df
