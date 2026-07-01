@@ -16,6 +16,8 @@ from app.models.job_summary import JobSummary
 from app.repositories.job_summary.job_summary_repository import JobSummaryRepository
 from app.services.summary.job_summary_service import JobSummaryService
 
+from app.services.ai.job_summary_ai import JobSummaryAI
+
 
 job_repository = JobRepository()
 csv_processor = CSVProcessor()
@@ -25,6 +27,7 @@ llm_categorizer = LLMCategorizer()
 
 job_summary_service = JobSummaryService()
 job_summary_repository = JobSummaryRepository()
+job_summary_ai = JobSummaryAI()
 
 
 @celery.task
@@ -80,9 +83,6 @@ def process_job(job_id: str):
         print(f"Raw Rows   : {raw_rows}")
         print(f"Clean Rows : {clean_rows}")
 
-        # ==========================================
-        # Save Transactions
-        # ==========================================
 
         for _, row in df.iterrows():
 
@@ -147,11 +147,23 @@ def process_job(job_id: str):
 
         print(f"Saved {clean_rows} transactions.")
 
-        # ==========================================
-        # Generate Job Summary
-        # ==========================================
+
 
         summary_data = job_summary_service.generate(df)
+
+
+        narrative, ai_failed = job_summary_ai.generate(
+            total_spend_inr=summary_data["total_spend_inr"],
+            total_spend_usd=summary_data["total_spend_usd"],
+            anomaly_count=summary_data["anomaly_count"],
+            risk_level=summary_data["risk_level"],
+            category_breakdown=summary_data["category_breakdown"],
+            top_merchants=summary_data["top_merchants"],
+        )
+
+        print("\n========== AI SUMMARY ==========")
+        print(narrative)
+        print("================================\n")
 
         summary = JobSummary(
             job_id=job.id,
@@ -160,7 +172,7 @@ def process_job(job_id: str):
             top_merchants=summary_data["top_merchants"],
             category_breakdown=summary_data["category_breakdown"],
             anomaly_count=summary_data["anomaly_count"],
-            narrative="Pending AI Summary",
+            narrative=narrative,
             risk_level=summary_data["risk_level"],
         )
 

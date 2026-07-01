@@ -1,4 +1,5 @@
 import json
+import time
 
 from google import genai
 
@@ -13,77 +14,93 @@ class LLMCategorizer:
         )
 
         self.model = settings.GEMINI_MODEL
+        self.max_retries = 3
 
     def categorize_merchants(
-        self,
-        merchants: list[str],
+            self,
+            merchants: list[str]
     ) -> dict[str, str]:
 
-        if not merchants:
-            return {}
-
         prompt = f"""
-You are a financial transaction classifier.
+    You are a financial transaction classifier.
 
-For every merchant below, return ONLY one category.
+    Classify each merchant into ONE category.
 
-Allowed categories:
+    Allowed categories:
 
-Food
-Travel
-Shopping
-Bills
-Entertainment
-Healthcare
-Investment
-Transfer
-Utilities
-Salary
-Other
+    Food
+    Travel
+    Shopping
+    Bills
+    Entertainment
+    Healthcare
+    Investment
+    Transfer
+    Utilities
+    Salary
+    Other
 
-Return ONLY valid JSON.
+    Return ONLY valid JSON.
 
-Example:
+    Example:
 
-{{
-    "Amazon":"Shopping",
-    "Swiggy":"Food",
-    "IRCTC":"Travel"
-}}
+    {{
+        "Amazon":"Shopping",
+        "Swiggy":"Food",
+        "IRCTC":"Travel"
+    }}
 
-Merchants:
+    Merchants:
 
-{json.dumps(merchants, indent=2)}
-"""
+    {json.dumps(merchants, indent=2)}
+    """
 
-        try:
+        for attempt in range(1, self.max_retries + 1):
 
-            response = self.client.models.generate_content(
-                model=self.model,
-                contents=prompt,
-            )
+            try:
 
-            text = response.text.strip()
+                print(
+                    f"\nGemini Categorization "
+                    f"(Attempt {attempt}/{self.max_retries})"
+                )
 
-            if text.startswith("```json"):
-                text = text.replace("```json", "", 1)
+                response = self.client.models.generate_content(
+                    model=self.model,
+                    contents=prompt,
+                )
 
-            if text.startswith("```"):
-                text = text.replace("```", "", 1)
+                text = response.text.strip()
 
-            if text.endswith("```"):
-                text = text[:-3]
+                if text.startswith("```json"):
+                    text = text.replace("```json", "", 1)
 
-            text = text.strip()
+                if text.startswith("```"):
+                    text = text.replace("```", "", 1)
 
-            merchant_map = json.loads(text)
+                if text.endswith("```"):
+                    text = text[:-3]
 
-            return merchant_map
+                text = text.strip()
 
-        except Exception as e:
+                data = json.loads(text)
 
-            print("\n========== GEMINI ERROR ==========")
-            print(e)
-            print("=================================\n")
+                print("\nMerchant Categories")
+                print(data)
 
-            return {merchant: "Other" for merchant in merchants}
+                return data
+
+            except Exception as e:
+
+                print(f"\nGemini Error (Attempt {attempt})")
+                print(e)
+
+                if attempt < self.max_retries:
+                    wait = 2 ** attempt
+
+                    print(f"Retrying in {wait} seconds...\n")
+
+                    time.sleep(wait)
+
+        print("\nGemini unavailable after retries.")
+
+        return {}
