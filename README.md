@@ -1,4 +1,4 @@
-# 🚀 AI Transaction Processing Pipeline
+#  AI Transaction Processing Pipeline
 
 <p align="center">
 
@@ -14,7 +14,7 @@
 
 ---
 
-## 📌 Project Overview
+##  Project Overview
 
 The **AI Transaction Processing Pipeline** is a production-inspired backend system that processes financial transaction CSV files asynchronously using **FastAPI**, **Celery**, **Redis**, **PostgreSQL**, and **Google Gemini AI**.
 
@@ -26,7 +26,7 @@ This architecture closely resembles enterprise-scale financial processing system
 
 ---
 
-# ✨ Features
+#  Features
 
 ### 📂 CSV Processing
 
@@ -47,7 +47,7 @@ This architecture closely resembles enterprise-scale financial processing system
 
 ---
 
-### 🚨 Rule-Based Anomaly Detection
+###  Rule-Based Anomaly Detection
 
 Automatically detects transactions based on:
 
@@ -60,7 +60,7 @@ Automatically detects transactions based on:
 
 ---
 
-### 🤖 AI-Powered Merchant Categorization
+###  AI-Powered Merchant Categorization
 
 Google Gemini AI automatically classifies merchants into categories such as:
 
@@ -78,7 +78,7 @@ Google Gemini AI automatically classifies merchants into categories such as:
 
 ---
 
-### 📊 Financial Summary Generation
+###  Financial Summary Generation
 
 Automatically computes
 
@@ -91,7 +91,7 @@ Automatically computes
 
 ---
 
-### 📝 Executive Narrative Generation
+###  Executive Narrative Generation
 
 Gemini AI generates an executive financial summary describing
 
@@ -103,7 +103,7 @@ Gemini AI generates an executive financial summary describing
 
 ---
 
-### 📡 REST APIs
+###  REST APIs
 
 - Upload CSV
 - Check Job Status
@@ -112,7 +112,7 @@ Gemini AI generates an executive financial summary describing
 
 ---
 
-### 🐳 Dockerized
+###  Dockerized
 
 Entire application can be started using
 
@@ -123,7 +123,7 @@ with a single command.
 
 ---
 
-# 🛠 Tech Stack
+#  Tech Stack
 
 | Category | Technologies |
 |-----------|--------------|
@@ -142,7 +142,7 @@ with a single command.
 
 ---
 
-# 📂 Project Structure
+#  Project Structure
 
 ```text
 ai-transaction-processing-pipeline
@@ -181,7 +181,7 @@ ai-transaction-processing-pipeline
 
 ---
 
-# 🏗 System Architecture
+#  System Architecture
 
 The following architecture illustrates how the application components communicate with each other.
 
@@ -193,7 +193,7 @@ The following architecture illustrates how the application components communicat
 
 ---
 
-# 🔄 Transaction Processing Flow
+#  Transaction Processing Flow
 
 The following diagram illustrates the complete processing lifecycle from CSV upload to AI-generated financial report.
 
@@ -205,7 +205,7 @@ The following diagram illustrates the complete processing lifecycle from CSV upl
 
 ---
 
-# ⚙️ Processing Pipeline
+# ⚙ Processing Pipeline
 
 ```
 
@@ -305,7 +305,7 @@ The following diagram illustrates the complete processing lifecycle from CSV upl
 
 ---
 
-# 📈 High-Level Workflow
+#  High-Level Workflow
 
 1. Client uploads a CSV file.
 2. FastAPI validates the uploaded file.
@@ -324,7 +324,7 @@ The following diagram illustrates the complete processing lifecycle from CSV upl
 
 ---
 
-# 🚀 Getting Started
+#  Getting Started
 
 ## Prerequisites
 
@@ -341,7 +341,7 @@ Before running the project, ensure the following software is installed on your m
 
 ---
 
-# 📥 Clone Repository
+#  Clone Repository
 
 ```bash
 git clone https://github.com/<your-github-username>/ai-transaction-processing-pipeline.git
@@ -351,7 +351,7 @@ cd ai-transaction-processing-pipeline
 
 ---
 
-# 📦 Install Dependencies
+#  Install Dependencies
 
 Create a virtual environment.
 
@@ -381,7 +381,7 @@ pip install -r requirements.txt
 
 ---
 
-# ⚙️ Environment Variables
+# ⚙ Environment Variables
 
 Create a `.env` file in the project root.
 
@@ -401,7 +401,7 @@ GEMINI_MODEL=gemini-2.5-flash
 
 ---
 
-## 🐳 Docker Environment
+##  Docker Environment
 
 When running inside Docker, create a separate `.env.docker`.
 
@@ -437,7 +437,7 @@ alembic upgrade head
 
 ---
 
-# ▶️ Running the Project (Local Development)
+# ▶ Running the Project (Local Development)
 
 ## Step 1
 
@@ -485,7 +485,7 @@ http://127.0.0.1:8000/docs
 
 ---
 
-# 🐳 Running with Docker
+#  Running with Docker
 
 Build all images.
 
@@ -525,7 +525,7 @@ docker compose up --build
 
 ---
 
-# 📦 Docker Services
+#  Docker Services
 
 The application consists of four containers.
 
@@ -538,7 +538,7 @@ The application consists of four containers.
 
 ---
 
-# 🌐 API Documentation
+#  API Documentation
 
 Once the application is running, Swagger UI is available at:
 
@@ -555,7 +555,7 @@ Interactive API documentation allows you to:
 
 ---
 
-# 🔑 Available REST APIs
+#  Available REST APIs
 
 | Method | Endpoint | Description |
 |----------|-------------------------|-----------------------------|
@@ -567,7 +567,7 @@ Interactive API documentation allows you to:
 
 ---
 
-# 📤 Upload CSV
+#  Upload CSV
 
 Uploads a CSV file and creates a background processing job.
 
@@ -589,7 +589,7 @@ POST /jobs/upload
 
 ---
 
-# 📊 Get Job Status
+#  Get Job Status
 
 Returns the current status of the processing job.
 
@@ -615,7 +615,7 @@ GET /jobs/{job_id}/status
 
 ---
 
-# 📈 Get Processing Results
+#  Get Processing Results
 
 Returns the complete processed financial report.
 
@@ -639,7 +639,7 @@ The response contains:
 ---
 
 
-# 🧠 AI Integration
+#  AI Integration
 
 The application leverages **Google Gemini 2.5 Flash** to enrich raw financial transaction data with intelligent insights.
 
@@ -647,7 +647,7 @@ AI is utilized in two key stages of the processing pipeline:
 
 ---
 
-## 1️⃣ Merchant Categorization
+## 1️ Merchant Categorization
 
 Instead of relying on manually maintained mapping tables, the system sends merchant names to Gemini AI in batches for classification.
 
@@ -680,7 +680,7 @@ The categorization service implements:
 
 ---
 
-## 2️⃣ Executive Narrative Generation
+## 2️ Executive Narrative Generation
 
 Once the entire transaction dataset has been processed, Gemini AI generates an executive-level financial summary.
 
@@ -697,7 +697,7 @@ This enables non-technical users to understand their financial activity without 
 
 ---
 
-# 🚨 Rule-Based Anomaly Detection
+#  Rule-Based Anomaly Detection
 
 The system automatically identifies suspicious or noteworthy transactions using predefined business rules.
 
@@ -716,7 +716,7 @@ Each detected anomaly is stored together with the reason, allowing downstream sy
 
 ---
 
-# 📊 Financial Summary Generation
+#  Financial Summary Generation
 
 After processing all transactions, the system computes aggregate insights, including:
 
@@ -731,7 +731,7 @@ These summaries are persisted in PostgreSQL and exposed through the Results API.
 
 ---
 
-# 🗃 Database Design
+# Database Design
 
 The application uses PostgreSQL as the primary data store.
 
@@ -786,7 +786,7 @@ Includes:
 
 ---
 
-# 📷 Application Screenshots
+#  Application Screenshots
 
 The following screenshots demonstrate the application workflow.
 
@@ -840,7 +840,7 @@ screenshots/docker-containers.png
 
 ---
 
-# 🧪 Testing
+#  Testing
 
 The project has been tested for the following scenarios:
 
@@ -857,7 +857,7 @@ The project has been tested for the following scenarios:
 
 ---
 
-# 📈 Future Enhancements
+#  Future Enhancements
 
 The project can be extended with several enterprise-grade features:
 
@@ -878,7 +878,7 @@ The project can be extended with several enterprise-grade features:
 
 ---
 
-# 💡 Key Learning Outcomes
+#  Key Learning Outcomes
 
 This project demonstrates practical implementation of:
 
@@ -896,7 +896,7 @@ This project demonstrates practical implementation of:
 
 ---
 
-# 🤝 Contributing
+#  Contributing
 
 Contributions are welcome.
 
@@ -910,13 +910,13 @@ If you would like to improve this project:
 
 ---
 
-# 📄 License
+#  License
 
 This project is licensed under the MIT License.
 
 ---
 
-# 👨‍💻 Author
+# 👨‍ Author
 
 **Yash Chauhan**
 
@@ -936,7 +936,7 @@ It helps others discover the project and motivates future improvements.
 
 ---
 
-## 🙏 Acknowledgements
+##  Acknowledgements
 
 This project was built using the following technologies and communities:
 
