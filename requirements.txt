@@ -24,7 +24,7 @@ pandas
 
 python-dateutil
 
-google-generativeai
+google-genai
 
 tenacity
 

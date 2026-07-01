@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
+from pathlib import Path
 
 class Settings(BaseSettings):
     APP_NAME: str
@@ -10,8 +10,8 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str
 
     model_config = SettingsConfigDict(
-        env_file=".env",
-        case_sensitive=True
+        env_file=".env.local" if Path(".env.local").exists() else ".env",
+        case_sensitive=True,
     )
 
 
