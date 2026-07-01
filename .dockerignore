@@ -1,0 +1,9 @@
+.venv
+.idea
+.git
+.gitignore
+__pycache__
+.pytest_cache
+*.pyc
+uploads
+alembic/versions

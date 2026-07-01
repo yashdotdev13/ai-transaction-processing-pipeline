@@ -1,0 +1,63 @@
+version: "3.9"
+
+services:
+
+  postgres:
+    image: postgres:16
+    container_name: transaction-postgres
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: transaction_db
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: transaction-redis
+
+    ports:
+      - "6379:6379"
+
+  api:
+    build: .
+
+    container_name: transaction-api
+
+    depends_on:
+      - postgres
+      - redis
+
+    ports:
+      - "8000:8000"
+
+    env_file:
+      - .env
+
+    volumes:
+      - .:/app
+
+  worker:
+    build: .
+
+    container_name: transaction-worker
+
+    command: celery -A app.workers.celery_app worker --pool=solo --loglevel=info
+
+    depends_on:
+      - postgres
+      - redis
+
+    env_file:
+      - .env
+
+    volumes:
+      - .:/app
+
+volumes:
+  postgres_data:
