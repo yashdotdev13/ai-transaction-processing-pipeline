@@ -73,3 +73,15 @@ class JobService:
             "summary": summary,
             "transactions": transactions,
         }
+
+
+    @staticmethod
+    def get_jobs(
+        db: Session,
+        status: str | None = None,
+    ):
+
+        if status:
+            return JobRepository.get_by_status(db, status)
+
+        return JobRepository.get_all(db)

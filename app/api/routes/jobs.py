@@ -9,6 +9,10 @@ from app.schemas.job import (
 from app.services.jobs.job_service import JobService
 from app.schemas.result import JobResultResponse
 
+from typing import Optional
+
+from app.schemas.job import JobListResponse
+
 router = APIRouter(
     prefix="/jobs",
     tags=["Jobs"]
@@ -80,3 +84,31 @@ def get_job_results(
         summary=result["summary"],
         transactions=result["transactions"],
     )
+
+
+@router.get(
+    "",
+    response_model=list[JobListResponse],
+)
+def get_jobs(
+    status: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+
+    jobs = JobService.get_jobs(
+        db=db,
+        status=status,
+    )
+
+    return [
+        JobListResponse(
+            job_id=job.id,
+            filename=job.filename,
+            status=job.status,
+            row_count_raw=job.row_count_raw,
+            row_count_clean=job.row_count_clean,
+            created_at=job.created_at,
+            completed_at=job.completed_at,
+        )
+        for job in jobs
+    ]
