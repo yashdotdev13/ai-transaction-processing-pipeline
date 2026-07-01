@@ -18,3 +18,8 @@ celery.conf.update(
     timezone="UTC",
     enable_utc=True,
 )
+
+# 👇 Register task modules
+celery.conf.imports = (
+    "app.workers.tasks",
+)

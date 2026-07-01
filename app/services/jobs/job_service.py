@@ -6,6 +6,8 @@ from app.models.job import Job
 from app.repositories.jobs.job_repository import JobRepository
 from app.services.jobs.file_storage_service import FileStorageService
 
+from app.workers.tasks import process_job
+
 
 class JobService:
 
@@ -30,5 +32,8 @@ class JobService:
 
         # Save uploaded file
         FileStorageService.save(job.id, file)
+
+        # Send job to Celery
+        process_job.delay(str(job.id))
 
         return job
