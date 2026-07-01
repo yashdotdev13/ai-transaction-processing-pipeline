@@ -7,8 +7,8 @@ engine = create_engine(
     settings.DATABASE_URL,
     echo=True,
     future=True,
+    use_insertmanyvalues=False,
 )
-
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,

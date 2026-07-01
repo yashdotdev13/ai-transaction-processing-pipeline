@@ -1,13 +1,18 @@
+from datetime import datetime
+from pathlib import Path
+
+from app.core.config import settings
+from app.core.enums.job_status import JobStatus
 from app.db.session import SessionLocal
+from app.models.transaction import Transaction
 from app.repositories.jobs.job_repository import JobRepository
 from app.services.cleaning.csv_processor import CSVProcessor
+from app.services.cleaning.data_cleaner import DataCleaner
 from app.workers.celery_app import celery
-
-from pathlib import Path
-from app.core.config import settings
 
 job_repository = JobRepository()
 csv_processor = CSVProcessor()
+data_cleaner = DataCleaner()
 
 
 @celery.task
@@ -24,26 +29,68 @@ def process_job(job_id: str):
             print("Job not found!")
             return False
 
-        print(f"Job ID : {job.id}")
-
+        # CSV File Path
         file_path = Path(settings.UPLOAD_DIR) / job.id / job.filename
 
         print(f"CSV Path : {file_path}")
 
+        # Read CSV
         df = csv_processor.process(str(file_path))
 
-        print("\nCSV Loaded Successfully!\n")
+        raw_rows = len(df)
 
-        print(df.head())
-        print(f"\nTotal Rows    : {len(df)}")
-        print(f"Total Columns : {len(df.columns)}")
+        # Clean Data
+        df = data_cleaner.clean(df)
 
-        print(f"\n========== Completed Job {job_id} ==========\n")
+        clean_rows = len(df)
+
+        print(f"Raw Rows   : {raw_rows}")
+        print(f"Clean Rows : {clean_rows}")
+
+        # ==========================================
+        # Save ALL cleaned transactions
+        # ==========================================
+
+        for _, row in df.iterrows():
+
+            transaction = Transaction(
+                job_id=job.id,
+                txn_id=str(row["txn_id"]),
+                date=row["date"].to_pydatetime(),
+                merchant=str(row["merchant"]),
+                amount=float(row["amount"]),
+                currency=str(row["currency"]),
+                status=str(row["status"]),
+                category=None if row["category"] != row["category"] else str(row["category"]),
+                account_id=str(row["account_id"]),
+                notes=None if row["notes"] != row["notes"] else str(row["notes"]),
+            )
+
+            db.add(transaction)
+
+        print(f"Saved {clean_rows} transactions.")
+
+        # Update Job
+        job.row_count_raw = raw_rows
+        job.row_count_clean = clean_rows
+        job.status = JobStatus.COMPLETED.value
+        job.completed_at = datetime.utcnow()
+
+        db.commit()
+
+        print(f"\n========== Job {job_id} Completed ==========\n")
 
         return True
 
     except Exception as e:
-        print(f"Error while processing job: {e}")
+        db.rollback()
+
+        if job is not None:
+            job.status = JobStatus.FAILED.value
+            job.error_message = str(e)
+            db.commit()
+
+        print(f"\nERROR: {e}\n")
         raise
 
     finally:
