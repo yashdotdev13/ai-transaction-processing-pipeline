@@ -31,3 +31,5 @@ tenacity
 httpx
 
 pytest
+
+flower
