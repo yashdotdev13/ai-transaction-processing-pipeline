@@ -792,7 +792,7 @@ The following screenshots demonstrate the application workflow.
 
 ## Swagger UI
 
-> Add screenshot
+> ![swagger.png](architecture/swagger.png)
 
 ```
 screenshots/swagger-ui.png
@@ -802,7 +802,7 @@ screenshots/swagger-ui.png
 
 ## Upload CSV
 
-> Add screenshot
+![upload-api.png](architecture/upload-api.png)
 
 ```
 screenshots/upload-api.png
@@ -812,7 +812,7 @@ screenshots/upload-api.png
 
 ## Job Status
 
-> Add screenshot
+![job-status.png](architecture/job-status.png)
 
 ```
 screenshots/job-status.png
@@ -822,7 +822,7 @@ screenshots/job-status.png
 
 ## Processing Results
 
-> Add screenshot
+![results-api.png](architecture/results-api.png)
 
 ```
 screenshots/results-api.png
@@ -832,7 +832,7 @@ screenshots/results-api.png
 
 ## Docker Containers
 
-> Add screenshot
+![docker-containers.png](architecture/docker-containers.png)
 
 ```
 screenshots/docker-containers.png
