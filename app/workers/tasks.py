@@ -8,16 +8,16 @@ from app.models.transaction import Transaction
 from app.repositories.jobs.job_repository import JobRepository
 from app.services.cleaning.csv_processor import CSVProcessor
 from app.services.cleaning.data_cleaner import DataCleaner
+from app.services.anomaly.anomaly_detector import AnomalyDetector
+from app.services.ai.llm_categorizer import LLMCategorizer
 from app.workers.celery_app import celery
 
-from app.services.anomaly.anomaly_detector import AnomalyDetector
 
 job_repository = JobRepository()
 csv_processor = CSVProcessor()
 data_cleaner = DataCleaner()
-
 anomaly_detector = AnomalyDetector()
-
+llm_categorizer = LLMCategorizer()
 
 
 @celery.task
@@ -50,12 +50,63 @@ def process_job(job_id: str):
         # Detect anomalies
         df = anomaly_detector.detect(df)
 
+        # Extract unique merchants
+        unique_merchants = (
+            df["merchant"]
+            .dropna()
+            .astype(str)
+            .str.strip()
+            .unique()
+            .tolist()
+        )
+
+        print(f"Unique Merchants : {len(unique_merchants)}")
+
+        merchant_categories = llm_categorizer.categorize_merchants(
+            unique_merchants
+        )
+
+        print(merchant_categories)
+
         clean_rows = len(df)
 
         print(f"Raw Rows   : {raw_rows}")
         print(f"Clean Rows : {clean_rows}")
 
+        # ==========================================
+        # Save Transactions
+        # ==========================================
+
         for _, row in df.iterrows():
+
+            original_category = (
+                None
+                if row["category"] != row["category"]
+                else str(row["category"])
+            )
+
+            notes = (
+                ""
+                if row["notes"] != row["notes"]
+                else str(row["notes"])
+            )
+
+            # AI Categorization
+            merchant = str(row["merchant"]).strip()
+
+            llm_category = merchant_categories.get(
+                merchant,
+                original_category or "Other"
+            )
+
+            llm_failed = merchant not in merchant_categories
+
+            print(
+                f"{merchant:<20}"
+                f"CSV={original_category} | "
+                f"LLM={llm_category}"
+            )
+
             transaction = Transaction(
                 job_id=job.id,
                 txn_id=str(row["txn_id"]),
@@ -64,19 +115,29 @@ def process_job(job_id: str):
                 amount=float(row["amount"]),
                 currency=str(row["currency"]),
                 status=str(row["status"]),
-                category=None if row["category"] != row["category"] else str(row["category"]),
+                category=original_category,
                 account_id=str(row["account_id"]),
-                notes=None if row["notes"] != row["notes"] else str(row["notes"]),
+                notes=notes,
 
+                # Rule-based anomaly detection
                 is_anomaly=bool(row["is_anomaly"]),
-                anomaly_reason=str(row["anomaly_reason"]) if row["is_anomaly"] else None,
+                anomaly_reason=(
+                    str(row["anomaly_reason"])
+                    if row["is_anomaly"]
+                    else None
+                ),
+
+                # AI fields
+                llm_category=llm_category,
+                llm_failed=llm_failed,
             )
 
             db.add(transaction)
 
-        print(f"Saved {clean_rows} transactions.")
+        print(f"\nSaved {clean_rows} transactions.")
 
         anomaly_count = int(df["is_anomaly"].sum())
+
         print(f"Anomalies Found : {anomaly_count}")
 
         # Update Job
@@ -87,11 +148,12 @@ def process_job(job_id: str):
 
         db.commit()
 
-        print(f"\n========== Job {job_id} Completed ==========\n")
+        print("\n========== JOB COMPLETED ==========\n")
 
         return True
 
     except Exception as e:
+
         db.rollback()
 
         if job is not None:

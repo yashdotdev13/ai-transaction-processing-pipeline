@@ -14,17 +14,18 @@ class LLMCategorizer:
 
         self.model = settings.GEMINI_MODEL
 
-    def categorize(
+    def categorize_merchants(
         self,
-        merchant: str,
-        notes: str,
-        current_category: str,
-    ) -> tuple[str, bool]:
+        merchants: list[str],
+    ) -> dict[str, str]:
+
+        if not merchants:
+            return {}
 
         prompt = f"""
 You are a financial transaction classifier.
 
-Classify the transaction into ONE category only.
+For every merchant below, return ONLY one category.
 
 Allowed categories:
 
@@ -40,22 +41,19 @@ Utilities
 Salary
 Other
 
-Merchant:
-{merchant}
-
-Current Category:
-{current_category}
-
-Notes:
-{notes}
-
 Return ONLY valid JSON.
 
 Example:
 
 {{
-    "category":"Food"
+    "Amazon":"Shopping",
+    "Swiggy":"Food",
+    "IRCTC":"Travel"
 }}
+
+Merchants:
+
+{json.dumps(merchants, indent=2)}
 """
 
         try:
@@ -67,7 +65,6 @@ Example:
 
             text = response.text.strip()
 
-            # Remove markdown code fences if Gemini returns them
             if text.startswith("```json"):
                 text = text.replace("```json", "", 1)
 
@@ -79,18 +76,14 @@ Example:
 
             text = text.strip()
 
-            print("\n========== CLEAN RESPONSE ==========")
-            print(text)
-            print("===================================\n")
+            merchant_map = json.loads(text)
 
-            data = json.loads(text)
-
-            return data["category"], False
-
+            return merchant_map
 
         except Exception as e:
 
             print("\n========== GEMINI ERROR ==========")
             print(e)
             print("=================================\n")
-            return current_category, True
+
+            return {merchant: "Other" for merchant in merchants}
