@@ -12,12 +12,19 @@ from app.services.anomaly.anomaly_detector import AnomalyDetector
 from app.services.ai.llm_categorizer import LLMCategorizer
 from app.workers.celery_app import celery
 
+from app.models.job_summary import JobSummary
+from app.repositories.job_summary.job_summary_repository import JobSummaryRepository
+from app.services.summary.job_summary_service import JobSummaryService
+
 
 job_repository = JobRepository()
 csv_processor = CSVProcessor()
 data_cleaner = DataCleaner()
 anomaly_detector = AnomalyDetector()
 llm_categorizer = LLMCategorizer()
+
+job_summary_service = JobSummaryService()
+job_summary_repository = JobSummaryRepository()
 
 
 @celery.task
@@ -101,6 +108,10 @@ def process_job(job_id: str):
 
             llm_failed = merchant not in merchant_categories
 
+            # Store AI results back into DataFrame
+            df.at[row.name, "llm_category"] = llm_category
+            df.at[row.name, "llm_failed"] = llm_failed
+
             print(
                 f"{merchant:<20}"
                 f"CSV={original_category} | "
@@ -134,11 +145,30 @@ def process_job(job_id: str):
 
             db.add(transaction)
 
-        print(f"\nSaved {clean_rows} transactions.")
+        print(f"Saved {clean_rows} transactions.")
 
-        anomaly_count = int(df["is_anomaly"].sum())
+        # ==========================================
+        # Generate Job Summary
+        # ==========================================
 
-        print(f"Anomalies Found : {anomaly_count}")
+        summary_data = job_summary_service.generate(df)
+
+        summary = JobSummary(
+            job_id=job.id,
+            total_spend_inr=summary_data["total_spend_inr"],
+            total_spend_usd=summary_data["total_spend_usd"],
+            top_merchants=summary_data["top_merchants"],
+            category_breakdown=summary_data["category_breakdown"],
+            anomaly_count=summary_data["anomaly_count"],
+            narrative="Pending AI Summary",
+            risk_level=summary_data["risk_level"],
+        )
+
+        job_summary_repository.create(db, summary)
+
+        print("\n========== JOB SUMMARY ==========")
+        print(summary_data)
+        print("================================\n")
 
         # Update Job
         job.row_count_raw = raw_rows
