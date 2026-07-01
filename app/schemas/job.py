@@ -21,3 +21,13 @@ class UploadResponse(BaseModel):
     job_id: str
     status: JobStatus
     message: str
+
+
+class JobStatusResponse(BaseModel):
+    job_id: str
+    status: JobStatus
+    row_count_raw: int | None = None
+    row_count_clean: int | None = None
+    created_at: datetime
+    completed_at: datetime | None = None
+    error_message: str | None = None
